@@ -9,9 +9,12 @@ os.makedirs(LOG_DIR, exist_ok=True)
 
 def log_event(event_type, email, extra=""):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    line = f"[{timestamp}] {event_type.upper()} - EMAIL: {email} {extra}\n"
+    log_line = f"[{timestamp}] EVENT: {event_type.upper()} | EMAIL: {email}"
+    if extra:
+        log_line += f" | INFO: {extra}"
+    print(log_line)
     with open(os.path.join(LOG_DIR, "tracking.log"), "a", encoding="utf-8") as f:
-        f.write(line)
+        f.write(log_line + "\n")
 
 @app.route("/open")
 def track_open():
