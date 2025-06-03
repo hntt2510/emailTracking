@@ -1,5 +1,4 @@
-from flask import Flask, request, redirect, send_file
-from flask import Response
+from flask import Flask, request, redirect, send_file, Response
 from datetime import datetime
 import os
 
@@ -48,21 +47,22 @@ def track_click():
     log_event("click", email, f"{link_name} -> {target_url}")
     return redirect(target_url)
 
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
-
-
-    
 @app.route("/log")
 def view_log():
     try:
         with open(os.path.join(LOG_DIR, "tracking.log"), "r", encoding="utf-8") as f:
             content = f.read()
         return f"<pre>{content}</pre>"
-    except:
-        return "No log found."
+    except Exception as e:
+        return f"Lỗi khi đọc log: {e}"
 
 @app.route("/download_log")
 def download_log():
-    return send_file(os.path.join(LOG_DIR, "tracking.log"), as_attachment=True)
+    try:
+        return send_file(os.path.join(LOG_DIR, "tracking.log"), as_attachment=True)
+    except Exception as e:
+        return f"Lỗi khi tải log: {e}"
+
+# CHẠY LOCAL
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
