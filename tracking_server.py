@@ -9,21 +9,20 @@ LOG_DIR = "tracking_logs"
 LOG_FILE = os.path.join(LOG_DIR, "tracking.log")
 RENDER_LOG_URL = "https://emailtracking-4a79.onrender.com/download_log"
 
-# Tạo thư mục chứa log nếu chưa có
 os.makedirs(LOG_DIR, exist_ok=True)
 
-# Tự động tải log nếu chưa có file local và đang chạy ở máy cá nhân
+# Nếu chạy local & chưa có log → tải từ Render
 if not os.path.exists(LOG_FILE):
     try:
         r = requests.get(RENDER_LOG_URL)
         if r.status_code == 200:
             with open(LOG_FILE, "wb") as f:
                 f.write(r.content)
-            print("✅ Đã tự động tải tracking.log từ Render.")
+            print("✅ Đã tải tracking.log từ Render.")
         else:
-            print("⚠️ Không thể tải log từ Render, status:", r.status_code)
+            print("⚠️ Không thể tải log từ Render.")
     except Exception as e:
-        print("⚠️ Không thể kết nối đến Render:", e)
+        print("⚠️ Lỗi kết nối Render:", e)
 
 def log_event(event_type, email, extra=""):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -81,6 +80,6 @@ def download_log():
     except Exception as e:
         return f"Lỗi khi tải log: {e}"
 
-# CHẠY LOCAL
+# LOCAL RUN
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
