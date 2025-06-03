@@ -1,11 +1,29 @@
 from flask import Flask, request, redirect, send_file, Response
 from datetime import datetime
 import os
+import requests
 
 app = Flask(__name__)
 
 LOG_DIR = "tracking_logs"
+LOG_FILE = os.path.join(LOG_DIR, "tracking.log")
+RENDER_LOG_URL = "https://emailtracking-4a79.onrender.com/download_log"
+
+# Tạo thư mục chứa log nếu chưa có
 os.makedirs(LOG_DIR, exist_ok=True)
+
+# Tự động tải log nếu chưa có file local và đang chạy ở máy cá nhân
+if not os.path.exists(LOG_FILE):
+    try:
+        r = requests.get(RENDER_LOG_URL)
+        if r.status_code == 200:
+            with open(LOG_FILE, "wb") as f:
+                f.write(r.content)
+            print("✅ Đã tự động tải tracking.log từ Render.")
+        else:
+            print("⚠️ Không thể tải log từ Render, status:", r.status_code)
+    except Exception as e:
+        print("⚠️ Không thể kết nối đến Render:", e)
 
 def log_event(event_type, email, extra=""):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -13,7 +31,7 @@ def log_event(event_type, email, extra=""):
     if extra:
         log_line += f" | INFO: {extra}"
     print(log_line)
-    with open(os.path.join(LOG_DIR, "tracking.log"), "a", encoding="utf-8") as f:
+    with open(LOG_FILE, "a", encoding="utf-8") as f:
         f.write(log_line + "\n")
 
 @app.route("/open")
@@ -50,7 +68,7 @@ def track_click():
 @app.route("/log")
 def view_log():
     try:
-        with open(os.path.join(LOG_DIR, "tracking.log"), "r", encoding="utf-8") as f:
+        with open(LOG_FILE, "r", encoding="utf-8") as f:
             content = f.read()
         return f"<pre>{content}</pre>"
     except Exception as e:
@@ -59,7 +77,7 @@ def view_log():
 @app.route("/download_log")
 def download_log():
     try:
-        return send_file(os.path.join(LOG_DIR, "tracking.log"), as_attachment=True)
+        return send_file(LOG_FILE, as_attachment=True)
     except Exception as e:
         return f"Lỗi khi tải log: {e}"
 
