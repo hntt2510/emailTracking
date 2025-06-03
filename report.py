@@ -14,8 +14,12 @@ os.makedirs(os.path.dirname(report_file_path), exist_ok=True)
 if os.path.exists(report_file_path):
     os.remove(report_file_path)
 
-# Regex bắt log hợp lệ
-pattern = re.compile(r"\[(.*?)\] (OPEN|CLICK) - EMAIL: (.*?) ?(-> (.*))?$")
+# Regex mới khớp format hiện tại
+pattern = re.compile(
+    r"\[(.*?)\] EVENT: (OPEN|CLICK) \| EMAIL: (.*?)"
+    r"(?: \| INFO: (link\d) -> (.*))?"
+)
+
 
 # Link cần tracking
 link1 = "https://infoasia.com.vn/"
@@ -36,7 +40,17 @@ with open(log_file_path, encoding="utf-8") as f:
     for line in f:
         match = pattern.search(line)
         if match:
-            _, action, email_raw, _, url = match.groups()
+            _, action, email_raw, link_name, url = match.groups()
+            email = email_raw.strip().lower()
+
+            if action == "OPEN":
+                stats[email]["open"] = True
+            elif action == "CLICK":
+                if link_name == "link1":
+                    stats[email]["click1"] = True
+                if link_name == "link2":
+                    stats[email]["click2"] = True
+
             email = email_raw.strip().lower().split()[0]  # Làm sạch email để bỏ phần 'link1/link2'
             if action == "OPEN":
                 stats[email]["open"] = True
