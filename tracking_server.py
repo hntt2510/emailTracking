@@ -1,4 +1,5 @@
 from flask import Flask, request, redirect, send_file
+from flask import Response
 from datetime import datetime
 import os
 
@@ -50,3 +51,18 @@ def track_click():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
+
+    
+@app.route("/log")
+def view_log():
+    try:
+        with open(os.path.join(LOG_DIR, "tracking.log"), "r", encoding="utf-8") as f:
+            content = f.read()
+        return f"<pre>{content}</pre>"
+    except:
+        return "No log found."
+
+@app.route("/download_log")
+def download_log():
+    return send_file(os.path.join(LOG_DIR, "tracking.log"), as_attachment=True)
